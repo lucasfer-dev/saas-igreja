@@ -10,6 +10,7 @@ import { useChurchData } from "@/hooks/use-church-data";
 
 const items = [
   { href: "/admin", label: "Visão geral", icon: House },
+  { href: "/admin/membros", label: "Membros", icon: UsersRound },
   { href: "/admin/visitantes", label: "Visitantes", icon: UserPlus },
   { href: "/admin/eventos", label: "Eventos", icon: CalendarDays },
   { href: "/admin/noticias", label: "Notícias", icon: Newspaper },
@@ -38,7 +39,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <Icon size={18}/>{label}
             </Link>
           ))}
-          <small>SUPORTE</small>
+          <small>EXPERIÊNCIA</small>
           <Link href="/membros"><UsersRound size={18}/>Área do membro</Link>
           <a href="mailto:suporte@exemplo.com"><CircleHelp size={18}/>Ajuda</a>
         </nav>
