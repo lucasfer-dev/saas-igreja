@@ -27,7 +27,7 @@ export default function EventsPage() {
     <header className="app-top"><div><b>Eventos</b><small> Agenda da comunidade</small></div><button className="btn btn-primary" onClick={()=>{setEditing(null);setOpen(true)}}><Plus size={16}/> Novo evento</button></header>
     <div className="dashboard"><div className="page-title"><div><h1>Eventos</h1><p>O que estiver publicado aparece automaticamente na área do membro.</p></div></div>
       <div className="cards-list">
-        {(data?.events||[]).sort((a,b)=>a.date.localeCompare(b.date)).map(event=><article className="management-card" key={event.id}>
+        {[...(data?.events||[])].sort((a,b)=>a.date.localeCompare(b.date)).map(event=><article className="management-card" key={event.id}>
           <div className="date-block"><b>{new Date(event.date+"T12:00:00").getDate().toString().padStart(2,"0")}</b><small>{new Date(event.date+"T12:00:00").toLocaleDateString("pt-BR",{month:"short"}).replace(".","").toUpperCase()}</small></div>
           <div className="management-main"><div><h3>{event.title}</h3><p>{event.time} · {event.location}</p></div><small>{event.description}</small></div>
           <span className={event.published?"publish-pill on":"publish-pill"}>{event.published?"Publicado":"Rascunho"}</span>
