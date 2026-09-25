@@ -1,9 +1,9 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { Search, Trash2, UserPlus, X } from "lucide-react";
+import { MessageCircle, Search, Trash2, UserPlus, X } from "lucide-react";
 import { useChurchData } from "@/hooks/use-church-data";
-import { generateId, VisitorStatus } from "@/lib/local-data";
+import { generateId, normalizePhone, Visitor, VisitorStatus } from "@/lib/local-data";
 
 const labels: Record<VisitorStatus, string> = {
   novo: "Novo",
@@ -45,6 +45,13 @@ export default function VisitorsPage() {
     setEditingId(null); setOpen(false);
   }
 
+  function whatsapp(v:Visitor){
+    const phone=normalizePhone(v.phone);
+    if(!phone)return alert("Adicione um telefone para conversar pelo WhatsApp.");
+    const text=`Olá, ${v.name.split(" ")[0]}! Foi muito bom receber você. Como podemos te ajudar?`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`,"_blank","noopener,noreferrer");
+  }
+
   const editing = data?.visitors.find(v => v.id === editingId);
 
   return <>
@@ -54,12 +61,13 @@ export default function VisitorsPage() {
       <div className="toolbar"><div className="search-field"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nome, telefone ou e-mail"/></div><span>{visitors.length} registros</span></div>
       <div className="data-card">
         {visitors.length === 0 ? <div className="empty-state"><UserPlus/><h3>Nenhum visitante encontrado</h3><p>Cadastre a primeira pessoa para iniciar o acompanhamento.</p></div> :
-          visitors.map(v => <div className="data-row" key={v.id}>
+          visitors.map(v => <div className="data-row visitor-data-row" key={v.id}>
             <span className="avatar">{v.name.split(" ").map(x=>x[0]).slice(0,2).join("")}</span>
             <div className="data-main"><b>{v.name}</b><small>{v.phone || "Sem telefone"} {v.email ? "· "+v.email : ""}</small></div>
             <select value={v.status} onChange={e=>update(c=>({...c,visitors:c.visitors.map(x=>x.id===v.id?{...x,status:e.target.value as VisitorStatus}:x)}))}>
               {Object.entries(labels).map(([value,label])=><option value={value} key={value}>{label}</option>)}
             </select>
+            <button className="icon-neutral" onClick={()=>whatsapp(v)} aria-label="Conversar no WhatsApp"><MessageCircle size={15}/></button>
             <button className="small-action" onClick={()=>{setEditingId(v.id);setOpen(true)}}>Editar</button>
             <button className="icon-danger" aria-label="Excluir" onClick={()=>confirm("Excluir este visitante?")&&update(c=>({...c,visitors:c.visitors.filter(x=>x.id!==v.id)}))}><Trash2 size={15}/></button>
           </div>)}
