@@ -1,4 +1,5 @@
 export type VisitorStatus = "novo" | "contatado" | "integracao" | "conectado";
+export type MemberStatus = "ativo" | "inativo";
 
 export type Visitor = {
   id: string;
@@ -8,6 +9,16 @@ export type Visitor = {
   status: VisitorStatus;
   notes: string;
   createdAt: string;
+};
+
+export type Member = {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  ministry: string;
+  status: MemberStatus;
+  since: string;
 };
 
 export type ChurchEvent = {
@@ -40,6 +51,7 @@ export type ChurchSettings = {
 };
 
 export type ChurchData = {
+  members: Member[];
   visitors: Visitor[];
   events: ChurchEvent[];
   news: NewsItem[];
@@ -49,6 +61,12 @@ export type ChurchData = {
 const STORAGE_KEY = "comunidade.church.data.v1";
 
 export const initialData: ChurchData = {
+  members: [
+    { id: "m1", name: "Mariana Martins", phone: "(21) 99999-2001", email: "mariana@email.com", ministry: "Louvor", status: "ativo", since: "2025-03-09" },
+    { id: "m2", name: "Rafael Santos", phone: "(21) 99999-2002", email: "rafael@email.com", ministry: "Liderança", status: "ativo", since: "2023-08-13" },
+    { id: "m3", name: "Lucas Almeida", phone: "(21) 99999-2003", email: "lucas@email.com", ministry: "Mídia", status: "ativo", since: "2026-02-15" },
+    { id: "m4", name: "Beatriz Rocha", phone: "(21) 99999-2004", email: "bia@email.com", ministry: "Infantil", status: "ativo", since: "2024-11-10" },
+  ],
   visitors: [
     { id: "v1", name: "Ana Martins", phone: "(21) 99999-1001", email: "ana@email.com", status: "novo", notes: "Visitou com uma amiga.", createdAt: "2026-09-23T18:00:00.000Z" },
     { id: "v2", name: "João Souza", phone: "(21) 99999-1002", email: "", status: "contatado", notes: "Respondeu pelo WhatsApp.", createdAt: "2026-09-20T18:00:00.000Z" },
@@ -77,6 +95,17 @@ function cloneInitial(): ChurchData {
   return JSON.parse(JSON.stringify(initialData));
 }
 
+function normalize(data: Partial<ChurchData>): ChurchData {
+  const initial = cloneInitial();
+  return {
+    members: Array.isArray(data.members) ? data.members : initial.members,
+    visitors: Array.isArray(data.visitors) ? data.visitors : initial.visitors,
+    events: Array.isArray(data.events) ? data.events : initial.events,
+    news: Array.isArray(data.news) ? data.news : initial.news,
+    settings: { ...initial.settings, ...(data.settings || {}) },
+  };
+}
+
 export function loadChurchData(): ChurchData {
   if (typeof window === "undefined") return cloneInitial();
   const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -86,13 +115,7 @@ export function loadChurchData(): ChurchData {
     return data;
   }
   try {
-    const parsed = JSON.parse(raw) as Partial<ChurchData>;
-    return {
-      visitors: Array.isArray(parsed.visitors) ? parsed.visitors : cloneInitial().visitors,
-      events: Array.isArray(parsed.events) ? parsed.events : cloneInitial().events,
-      news: Array.isArray(parsed.news) ? parsed.news : cloneInitial().news,
-      settings: { ...cloneInitial().settings, ...(parsed.settings || {}) },
-    };
+    return normalize(JSON.parse(raw) as Partial<ChurchData>);
   } catch {
     return cloneInitial();
   }
@@ -123,4 +146,19 @@ export function exportChurchData(data: ChurchData) {
   anchor.download = `backup-comunidade-${new Date().toISOString().slice(0,10)}.json`;
   anchor.click();
   URL.revokeObjectURL(url);
+}
+
+export async function importChurchData(file: File) {
+  const text = await file.text();
+  const parsed = JSON.parse(text) as Partial<ChurchData>;
+  if (!parsed || typeof parsed !== "object") throw new Error("Arquivo inválido");
+  const normalized = normalize(parsed);
+  saveChurchData(normalized);
+  return normalized;
+}
+
+export function normalizePhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return "";
+  return digits.startsWith("55") ? digits : `55${digits}`;
 }
