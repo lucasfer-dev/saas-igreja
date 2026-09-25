@@ -8,11 +8,12 @@ const statusLabel = { novo: "Novo", contatado: "Contatado", integracao: "Integra
 
 export default function AdminPage() {
   const { data } = useChurchData();
+  const members = data?.members ?? [];
   const visitors = data?.visitors ?? [];
   const events = [...(data?.events ?? [])].sort((a,b)=>a.date.localeCompare(b.date));
   const news = data?.news ?? [];
   const newVisitors = visitors.filter(v=>v.status==="novo").length;
-  const connected = visitors.filter(v=>v.status==="conectado").length;
+  const activeMembers = members.filter(m=>m.status==="ativo").length;
 
   return <>
     <header className="app-top">
@@ -31,7 +32,7 @@ export default function AdminPage() {
       </div>
 
       <div className="stats-grid">
-        <article><div className="stat-icon"><UsersRound size={20}/></div><small>Visitantes registrados</small><strong>{visitors.length}</strong><p>{connected} já marcados como conectados</p></article>
+        <article><div className="stat-icon"><UsersRound size={20}/></div><small>Membros ativos</small><strong>{activeMembers}</strong><p>{members.length} pessoas cadastradas</p></article>
         <article><div className="stat-icon"><UserPlus size={20}/></div><small>Aguardando contato</small><strong>{newVisitors}</strong><p>{newVisitors ? "Priorize um primeiro contato" : "Tudo acompanhado por aqui"}</p></article>
         <article><div className="stat-icon"><CalendarDays size={20}/></div><small>Eventos publicados</small><strong>{events.filter(e=>e.published).length}</strong><p>{events.length} eventos cadastrados</p></article>
         <article><div className="stat-icon"><Newspaper size={20}/></div><small>Notícias publicadas</small><strong>{news.filter(n=>n.published).length}</strong><p>{news.length} conteúdos cadastrados</p></article>
@@ -71,6 +72,7 @@ export default function AdminPage() {
       </article>
 
       <div className="quick-actions">
+        <Link href="/admin/membros"><UsersRound/><div><b>Gerenciar membros</b><small>Cadastros e ministérios</small></div></Link>
         <Link href="/admin/visitantes"><UserPlus/><div><b>Novo visitante</b><small>Iniciar acompanhamento</small></div></Link>
         <Link href="/admin/eventos"><CalendarDays/><div><b>Gerenciar eventos</b><small>Atualizar agenda</small></div></Link>
         <Link href="/admin/noticias"><MessageSquareText/><div><b>Publicar notícia</b><small>Falar com a comunidade</small></div></Link>
